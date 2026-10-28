@@ -389,7 +389,22 @@ Phase 1 (parallel, independent files): **WP-A, WP-B, WP-C, WP-D, WP-E**.
 Phase 2 (after phase 1 is merged): **WP-F server**, **WP-G codegen**, **WP-H remote**.
 Phase 3: **WP-I docs, example app, end-to-end tests, CI**.
 
-Status: phase 1 is merged into `main`. Integration decisions taken while merging:
+Status: all three phases are merged into `main` (0.1.0 release candidate). Phase 3 added the
+guides (`documentation/topics`), the example app (`examples/`), the cross-package end-to-end
+suites (`test/e2e`, tag `:e2e`) and CI (`.github/workflows/ci.yml`). Fixes made along the way:
+
+* clients reset a pooled connection whose transport failed (`AshGrpc.Client.Pool.reset/2`):
+  grpc's Mint adapter re-dials a dropped connection only on its own backoff (up to 2 min)
+  and `GRPC.Client.Connection` never replaces it, so a restarted server stayed unreachable;
+* `AshGrpc.Server` preloads the endpoint's schema modules (handlers use
+  `String.to_existing_atom/1`; in interactive mode the first request whose response module
+  was not loaded failed with `INTERNAL`);
+* `AshGrpc.Server` no longer lets grpc_server log every deliberate status as an error
+  (`log_exception?/1`);
+* specs used `GRPC.RPCError.t()` & co., which grpc does not define; they now use struct types;
+* the formatter exports the `grpc_remote` DSL locals.
+
+Integration decisions taken while merging phase 1:
 
 * `AshGrpc.Codec` understands the field `source` shapes emitted by `AshGrpc.Schema`
   (`{kind, resource, name}`, `{:argument, resource, action, name}`); `{:special, _}` fields

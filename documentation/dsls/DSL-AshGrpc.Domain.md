@@ -12,6 +12,8 @@ use Ash.Domain, extensions: [AshGrpc.Domain]
 Every resource of the domain that uses `AshGrpc.Resource` contributes its message and rpcs.
 See the generated DSL documentation for all options.
 
+`mix ash.codegen` also runs `mix ash_grpc.codegen` through this extension (`codegen/1`).
+
 
 ## grpc
 Configures the `.proto` file and services generated for the domain.
