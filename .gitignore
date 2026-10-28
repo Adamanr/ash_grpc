@@ -22,6 +22,11 @@ ash_grpc-*.tar
 # Temporary files, for example, from tests.
 /tmp/
 
-# Generated test artifacts
-/tmp/
+# Editor / tooling
 .elixir_ls/
+.claude/
+.DS_Store
+
+# Example app build output
+/examples/*/_build/
+/examples/*/deps/
