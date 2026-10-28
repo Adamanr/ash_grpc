@@ -56,8 +56,10 @@ defmodule AshGrpc.MixProject do
 
   defp aliases do
     [
-      "spark.cheat_sheets": "spark.cheat_sheets --extensions AshGrpc.Resource,AshGrpc.Domain",
-      "spark.formatter": "spark.formatter --extensions AshGrpc.Resource,AshGrpc.Domain",
+      "spark.cheat_sheets":
+        "spark.cheat_sheets --extensions AshGrpc.Resource,AshGrpc.Domain,AshGrpc.DataLayer",
+      "spark.formatter":
+        "spark.formatter --extensions AshGrpc.Resource,AshGrpc.Domain,AshGrpc.DataLayer",
       check: [
         "format --check-formatted",
         "compile --warnings-as-errors",
