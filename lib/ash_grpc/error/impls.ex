@@ -32,10 +32,13 @@ for module <- [
     end
 
     # data layers report unique constraint violations as invalid attributes
-    defp unique?(%{private_vars: private_vars}) when is_list(private_vars),
-      do: private_vars[:constraint_type] == :unique
-
-    defp unique?(_), do: false
+    # not every error struct has `private_vars`, hence the dynamic lookup
+    defp unique?(error) do
+      case Map.get(error, :private_vars) do
+        private_vars when is_list(private_vars) -> private_vars[:constraint_type] == :unique
+        _ -> false
+      end
+    end
 
     defp field_message(nil, description), do: description
     defp field_message(field, description), do: "#{field}: #{description}"
