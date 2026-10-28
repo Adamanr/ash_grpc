@@ -84,11 +84,22 @@ AshGrpc.Proto.Import.from_descriptor_set(binary | Google.Protobuf.FileDescriptor
 
 # WP-C
 AshGrpc.Schema.build(domains :: [module], opts) :: {:ok, IR.Schema.t()} | {:error, [Exception.t()]}
-  # opts: lock: Lock.t() | nil  (numbers are assigned via Lock.assign/2)
-  # every IR node gets `source` (see IR docs) and `module` (Elixir module name to compile to)
+AshGrpc.Schema.build_with_lock(domains, opts) :: {:ok, IR.Schema.t(), Lock.t()} | {:error, [Exception.t()]}
+  # opts: lock: Lock.t() | nil  (numbers are assigned via Lock.assign/2; build_with_lock returns
+  #   the updated lock for codegen to write)
+  # every IR node gets `source` (see AshGrpc.Schema docs) and `module` (Elixir module name)
+  # rpc source: {:action, resource, action_name, %AshGrpc.Resource.Rpc{}} (kind/get_by resolved)
+AshGrpc.Resource.Info.fields(resource) :: [Info.MessageField.t()]   # resolved message fields
+AshGrpc.Resource.Info.rpcs(resource) :: [AshGrpc.Resource.Rpc.t()] # kind/get_by resolved
+AshGrpc.Domain.Info.service_name(domain, resource, rpc) :: String.t()
 
 # WP-D
 AshGrpc.Type.Mapping.to_proto(ash_type, constraints, opts) :: {:ok, Mapping.Result.t()} | {:error, term}
+  # opts include resolve_resource: (resource -> full_name | nil). Ownership: the Schema builder
+  # (WP-C) owns the messages of resources and embedded resources. It resolves direct
+  # occurrences (`Embedded`, `{:array, Embedded}`, `:struct` + `instance_of`) itself and passes
+  # `resolve_resource` so Mapping returns {:message, full_name} for resources nested in other
+  # types (unions, typed maps). Mapping never generates messages for resources.
 AshGrpc.Codec.encode(value, ash_type, constraints, IR.field_type()) :: {:ok, proto_value} | {:error, term}
 AshGrpc.Codec.decode(proto_value, ash_type, constraints, IR.field_type()) :: {:ok, value} | {:error, term}
 AshGrpc.Codec.encode_record(record, IR.Message.t(), IR.Schema.t()) :: {:ok, struct} | {:error, term}
@@ -114,23 +125,26 @@ defmodule MyApp.Accounts.User do
 
   grpc do
     message "User"                       # default: resource short name
-    fields [:id, :email, :role, :profile, :inserted_at]   # default: public attributes
-    # field-level fine tuning (all optional)
+    # attributes, calculations, aggregates and relationships, in order
+    # (default: public attributes; private ones may be listed explicitly)
+    fields [:id, :email, :role, :profile, :inserted_at, :display_name, :admin?, :posts]
+    # field-level fine tuning (all optional), for any listed field
     field :id, number: 1
     field :role, number: 3, doc: "Access level"
     field :inserted_at, representation: :string          # override type mapping
-    calculate :display_name, number: 10                  # expose calculations/aggregates
-    relationship :posts, message: "Post", load?: false   # loaded relationships → nested messages
-    reserved numbers: [4, 5], names: ["legacy_name"]
+    field :admin?, proto_name: "is_admin"                # default: trailing ?/! stripped
+    field :email, json_name: "emailAddress", deprecated?: true, options: [{"(my.ext).pii", true}]
+    reserved numbers: [4, 5, 10..12], names: ["legacy_name"]
 
-    rpc :get_user, :read, kind: :get, get_by: [:id]
-    rpc :list_users, :read, kind: :list                  # page_size/page_token/next_page_token
+    rpc :get_user, :read, kind: :get, get_by: [:id]     # get_by defaults to the primary key
+    rpc :list_users, :read, filter?: true, read_mask?: true   # page_size/page_token/next_page_token
     rpc :watch_users, :read, kind: :server_stream        # Ash.stream!/2 → server streaming
     rpc :create_user, :create
     rpc :update_user, :update, update_mask?: true        # google.protobuf.FieldMask
     rpc :delete_user, :destroy                           # returns google.protobuf.Empty
     rpc :import_users, :create, kind: :client_stream     # bulk create
     rpc :ping, :ping                                     # generic action
+    rpc :ban_user, :ban, service: "AdminService"         # per-rpc service override
     rpc :sync, :sync, kind: :bidi_stream, handler: MyApp.Grpc.SyncHandler  # escape hatch
   end
 end
@@ -139,12 +153,17 @@ defmodule MyApp.Accounts do
   use Ash.Domain, extensions: [AshGrpc.Domain]
 
   grpc do
-    package "myapp.accounts.v1"
-    file "myapp/accounts/v1/accounts.proto"
-    service "AccountsService"            # default service for every rpc of this domain
+    package "myapp.accounts.v1"          # default: underscored module name (warns: unversioned)
+    file "myapp/accounts/v1/accounts.proto"  # default: package path + last unversioned segment
+    module_prefix MyApp.Grpc.Accounts.V1 # default: camelized package
     option :go_package, "github.com/acme/myapp/gen/accounts/v1;accountsv1"
     option :java_multiple_files, true
-    module_prefix MyApp.Grpc.Accounts.V1 # Elixir modules for messages/services
+    imports ["google/api/annotations.proto"]   # extra imports (e.g. for external messages)
+
+    service "AccountsService"            # no rpcs/resources → default service of the domain
+    service "AdminService", rpcs: [:ban_user], doc: "Back office"
+    service "PostsService", resources: [MyApp.Accounts.Post]
+    # without any service: "<LastPackageSegment>Service" (AccountsService)
   end
 
   resources do
@@ -296,21 +315,35 @@ presence. Inputs: an absent optional field means "not provided" (Ash default app
 
 ### 4.4 Actions → rpcs
 
+Kinds are derived when omitted: `read` → `:get` if the action is `get?` or `get_by` is set,
+otherwise `:list`; `create`/`update`/`destroy` → same name; generic action → `:action`.
+`:server_stream`, `:client_stream` and `:bidi_stream` are always explicit. Messages are named
+after the rpc: `<Rpc>Request` / `<Rpc>Response`.
+
 | kind | request | response | Ash call |
 |---|---|---|---|
-| `:get` (read) | `get_by` fields + arguments (+ `read_mask`) | resource message | `Ash.read_one` / `get?` → `NOT_FOUND` when nil |
-| `:list` (read) | arguments + `page_size`, `page_token` (+ `filter`, `order_by` strings if `filter?: true`) | `List<Plural>Response { repeated items; next_page_token; optional total_size }` | keyset pagination, opaque base64 token |
-| `:server_stream` (read) | arguments | `stream` resource message | `Ash.stream!/2` with backpressure |
-| `:create` | accepted attributes + arguments (flat; `input: :wrapped` → `{ User user = 1; }`) | resource message | `Ash.create` |
-| `:update` | primary key + accepted + arguments (+ `update_mask`) | resource message | `Ash.update` (atomic when possible) |
-| `:destroy` | primary key + arguments | `google.protobuf.Empty` (or the record with `return_destroyed?: true`) | `Ash.destroy` |
-| `:client_stream` (create) | `stream` create request | `<Rpc>Response { count; repeated errors }` | `Ash.bulk_create` |
-| generic action | arguments | returns type; scalar returns wrapped in `<Rpc>Response { value }` | `Ash.run_action` |
-| `:bidi_stream` | custom | custom | requires `handler:` (escape hatch) |
+| `:get` (read) | `get_by` fields (default: primary key; none for `get?` actions) + arguments (+ `read_mask`) | resource message | `Ash.read_one` / `get?` → `NOT_FOUND` when nil |
+| `:list` (read) | arguments + `page_size`, `page_token` (+ `filter`, `order_by` strings if `filter?: true`) (+ `read_mask`) | `<Rpc>Response { repeated <Message> <plural> = 1; string next_page_token = 2; optional int64 total_size = 3 }` (plural: resource `plural_name` or pluralized message name) | keyset pagination, opaque base64 token |
+| `:server_stream` (read) | arguments (+ `read_mask`) | `stream` resource message | `Ash.stream!/2` with backpressure |
+| `:create` | accepted attributes + arguments (flat; `input: :wrapped` → `{ User user = 1; <arguments> }`) | resource message | `Ash.create` |
+| `:update` | primary key + accepted + arguments (+ `update_mask`); wrapped: record + arguments | resource message | `Ash.update` (atomic when possible) |
+| `:destroy` | primary key + arguments | `google.protobuf.Empty` (or the record with rpc option `return_destroyed?: true`) | `Ash.destroy` |
+| `:client_stream` (create) | `stream` create request | `<Rpc>Response { int64 count = 1; repeated google.rpc.Status errors = 2 }` | `Ash.bulk_create` |
+| generic action | arguments | no return → `Empty`; message return types (embedded/resource structs, well-known messages) directly; scalars, enums and arrays wrapped in `<Rpc>Response { value = 1 }` | `Ash.run_action` |
+| `:bidi_stream` | `stream` request of the action type's default shape | `stream` response of that shape | requires `handler:` (escape hatch) |
 
-`request_message:` / `response_message:` rename or point to an external module; `handler:` replaces
-the default handler entirely; `idempotency_level:` is derived (`read` → `NO_SIDE_EFFECTS`) and
-overridable — the client only retries idempotent rpcs.
+Presence in requests: required inputs (`allow_nil? false` without default, `require_attributes`,
+primary keys, `get_by` fields) use implicit presence; everything else is `optional`. Update
+inputs are never required. Private arguments are not exposed. Request fields for attributes reuse
+the record field's `proto_name` and `representation`.
+
+`request_message:` / `response_message:` take a PascalCase string (renames a *generated* message;
+renaming a response that is the record or `Empty` is an error) or a protobuf module
+(`use Protobuf`, replaces the message; add its file with the domain `imports` option);
+`handler:` replaces the default handler entirely; `idempotency_level:` is derived (`read` →
+`NO_SIDE_EFFECTS`) and overridable (`:unknown` clears it) — the client only retries idempotent rpcs.
+`load:` is applied to returned records; by default calculations and aggregates listed in `fields`
+are loaded (`AshGrpc.Resource.Info.default_load/1`), relationships only when `load` asks.
 
 ### 4.5 Errors
 

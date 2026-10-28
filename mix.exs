@@ -56,6 +56,8 @@ defmodule AshGrpc.MixProject do
 
   defp aliases do
     [
+      "spark.cheat_sheets": "spark.cheat_sheets --extensions AshGrpc.Resource,AshGrpc.Domain",
+      "spark.formatter": "spark.formatter --extensions AshGrpc.Resource,AshGrpc.Domain",
       check: [
         "format --check-formatted",
         "compile --warnings-as-errors",
@@ -69,7 +71,12 @@ defmodule AshGrpc.MixProject do
     [
       main: "readme",
       source_ref: "v#{@version}",
-      extras: ["README.md", "DESIGN.md"]
+      extras: [
+        "README.md",
+        "DESIGN.md",
+        "documentation/dsls/DSL-AshGrpc.Resource.md",
+        "documentation/dsls/DSL-AshGrpc.Domain.md"
+      ]
     ]
   end
 
