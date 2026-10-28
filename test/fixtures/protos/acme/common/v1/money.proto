@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+// Shared value types.
+package acme.common.v1;
+
+import "google/type/date.proto";
+
+option go_package = "github.com/acme/gen/common/v1;commonv1";
+
+// An amount of money in a currency.
+message Money {
+  // ISO 4217 code.
+  string currency_code = 1;
+  int64 units = 2;
+  int32 nanos = 3;
+}
+
+message Period {
+  google.type.Date start = 1;
+  google.type.Date end = 2;
+}
+
+enum Currency {
+  CURRENCY_UNSPECIFIED = 0;
+  CURRENCY_USD = 1;
+  CURRENCY_EUR = 2;
+}

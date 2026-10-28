@@ -1,0 +1,65 @@
+// Custom options used by the other fixtures.
+syntax = "proto3";
+
+package acme.options.v1;
+
+import "google/protobuf/descriptor.proto";
+
+enum Sensitivity {
+  SENSITIVITY_UNSPECIFIED = 0;
+  SENSITIVITY_LOW = 1;
+  SENSITIVITY_HIGH = 2;
+}
+
+message FieldRules {
+  int32 min_len = 1;
+  int32 max_len = 2;
+  repeated string tags = 3;
+  Sensitivity sensitivity = 4;
+  Nested nested = 5;
+
+  message Nested {
+    bool flag = 1;
+  }
+}
+
+extend google.protobuf.FileOptions {
+  string owner = 50000;
+}
+
+extend google.protobuf.MessageOptions {
+  string table = 50001;
+  bool audited = 50002;
+}
+
+extend google.protobuf.FieldOptions {
+  bool sensitive = 50003;
+  Sensitivity sensitivity = 50004;
+  FieldRules rules = 50005;
+  repeated string labels = 50006;
+  sint32 weight = 50007;
+  double ratio = 50008;
+  fixed64 checksum = 50009;
+  float score = 50010;
+  bytes blob = 50011;
+}
+
+extend google.protobuf.EnumOptions {
+  string enum_note = 50012;
+}
+
+extend google.protobuf.EnumValueOptions {
+  string display = 50013;
+}
+
+extend google.protobuf.ServiceOptions {
+  string default_host = 50014;
+}
+
+extend google.protobuf.MethodOptions {
+  int64 timeout_ms = 50015;
+}
+
+extend google.protobuf.OneofOptions {
+  bool exclusive = 50016;
+}

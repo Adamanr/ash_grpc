@@ -1,0 +1,182 @@
+// Billing API.
+//
+// Detached comment that must not become a doc.
+
+syntax = "proto3";
+
+// The billing package.
+package acme.billing.v1;
+
+import "acme/common/v1/money.proto";
+import public "acme/options/v1/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+import "google/type/date.proto";
+
+option java_multiple_files = true;
+option java_package = "com.acme.billing.v1";
+option go_package = "github.com/acme/gen/billing/v1;billingv1";
+option optimize_for = SPEED;
+option (acme.options.v1.owner) = "billing-team";
+
+// An invoice.
+//
+// Second paragraph.
+message Invoice {
+  option (acme.options.v1.table) = "invoices";
+  option (acme.options.v1.audited) = true;
+
+  reserved 4, 8 to 10, 1000 to max;
+  reserved "legacy_total", "old_status";
+
+  // Invoice id.
+  string id = 1;
+  acme.common.v1.Money total = 2; // Trailing comment.
+  Status status = 3;
+  optional string note = 5;
+  repeated Item items = 6;
+  map<string, string> labels = 7;
+  map<int64, Item> items_by_id = 11;
+  map<string, Status> status_by_region = 12;
+  google.protobuf.Timestamp created_at = 13;
+  google.type.Date due_on = 14;
+  string customer_email = 15 [
+    (acme.options.v1.sensitive) = true,
+    (acme.options.v1.sensitivity) = SENSITIVITY_HIGH,
+    (acme.options.v1.rules) = {min_len: 3, max_len: 254, tags: ["pii", "email"], nested: {flag: true}},
+    (acme.options.v1.labels) = "a",
+    (acme.options.v1.labels) = "b",
+    (acme.options.v1.weight) = -7,
+    (acme.options.v1.ratio) = 0.5,
+    (acme.options.v1.checksum) = 42,
+    (acme.options.v1.score) = 1.5,
+    (acme.options.v1.blob) = "\x01\x02"
+  ];
+  int32 legacy_code = 16 [deprecated = true, json_name = "legacyCodeV1"];
+  repeated int32 packed_numbers = 17 [packed = false];
+  optional Status optional_status = 18;
+  acme.common.v1.Currency currency = 19;
+
+  // How the invoice gets paid.
+  oneof payment {
+    option (acme.options.v1.exclusive) = true;
+
+    // Card token.
+    string card_token = 30;
+    BankTransfer bank_transfer = 31;
+    int64 wallet_id = 32;
+  }
+
+  // A line item.
+  message Item {
+    string sku = 1;
+    uint32 quantity = 2;
+    acme.common.v1.Money price = 3;
+    Kind kind = 4;
+
+    enum Kind {
+      KIND_UNSPECIFIED = 0;
+      KIND_GOODS = 1;
+      KIND_SERVICE = 2;
+    }
+
+    message Discount {
+      double percent = 1;
+      Item.Kind applies_to = 2;
+    }
+  }
+
+  message BankTransfer {
+    string iban = 1;
+    bytes reference = 2;
+  }
+
+  enum Status {
+    option allow_alias = true;
+    option (acme.options.v1.enum_note) = "status";
+
+    reserved 9, 20 to 30, 100 to max;
+    reserved "VOIDED";
+
+    STATUS_UNSPECIFIED = 0;
+    // Draft invoice.
+    STATUS_DRAFT = 1 [(acme.options.v1.display) = "Draft"];
+    STATUS_OPEN = 2;
+    STATUS_ISSUED = 2;
+    STATUS_PAID = 3 [deprecated = true];
+  }
+}
+
+// Every scalar type.
+message Scalars {
+  double f_double = 1;
+  float f_float = 2;
+  int32 f_int32 = 3;
+  int64 f_int64 = 4;
+  uint32 f_uint32 = 5;
+  uint64 f_uint64 = 6;
+  sint32 f_sint32 = 7;
+  sint64 f_sint64 = 8;
+  fixed32 f_fixed32 = 9;
+  fixed64 f_fixed64 = 10;
+  sfixed32 f_sfixed32 = 11;
+  sfixed64 f_sfixed64 = 12;
+  bool f_bool = 13;
+  string f_string = 14;
+  bytes f_bytes = 15;
+}
+
+message GetInvoiceRequest {
+  string id = 1;
+  google.protobuf.FieldMask read_mask = 2;
+}
+
+message ListInvoicesRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+}
+
+message ListInvoicesResponse {
+  repeated Invoice invoices = 1;
+  string next_page_token = 2;
+}
+
+message UploadChunk {
+  bytes data = 1;
+}
+
+message UploadSummary {
+  int64 bytes_received = 1;
+}
+
+message SyncEvent {
+  string id = 1;
+}
+
+enum Region {
+  REGION_UNSPECIFIED = 0;
+  REGION_EU = 1;
+}
+
+// Manages invoices.
+service BillingService {
+  option deprecated = true;
+  option (acme.options.v1.default_host) = "billing.acme.test";
+
+  // Fetches one invoice.
+  rpc GetInvoice(GetInvoiceRequest) returns (Invoice) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (acme.options.v1.timeout_ms) = 1500;
+  }
+
+  rpc DeleteInvoice(GetInvoiceRequest) returns (google.protobuf.Empty) {
+    option idempotency_level = IDEMPOTENT;
+    option deprecated = true;
+  }
+
+  rpc ListInvoices(ListInvoicesRequest) returns (ListInvoicesResponse);
+  rpc WatchInvoices(ListInvoicesRequest) returns (stream Invoice);
+  rpc Upload(stream UploadChunk) returns (UploadSummary);
+  rpc Sync(stream SyncEvent) returns (stream SyncEvent);
+}
