@@ -40,7 +40,7 @@ defmodule AshGrpc.Client.Errors do
   def status_code(name), do: Map.fetch!(@codes, name)
 
   @doc "Builds a `GRPC.RPCError` from a status name and message."
-  @spec rpc_error(atom(), String.t()) :: GRPC.RPCError.t()
+  @spec rpc_error(atom(), String.t()) :: AshGrpc.Types.rpc_error()
   def rpc_error(status, message) do
     GRPC.RPCError.exception(status: status_code(status), message: message)
   end
@@ -48,7 +48,7 @@ defmodule AshGrpc.Client.Errors do
   @doc """
   Turns anything returned or raised by the transport into a `GRPC.RPCError`.
   """
-  @spec normalize(term()) :: GRPC.RPCError.t()
+  @spec normalize(term()) :: AshGrpc.Types.rpc_error()
   def normalize(%GRPC.RPCError{status: 2, message: message} = error) when is_binary(message) do
     if connection_failure?(message), do: %{error | status: status_code(:unavailable)}, else: error
   end
@@ -76,7 +76,7 @@ defmodule AshGrpc.Client.Errors do
   Whether a (normalized) error means that the connection itself failed, as opposed to a status
   sent by the server.
   """
-  @spec transport_failure?(GRPC.RPCError.t()) :: boolean()
+  @spec transport_failure?(AshGrpc.Types.rpc_error()) :: boolean()
   def transport_failure?(%GRPC.RPCError{status: 14, message: message}) when is_binary(message),
     do: connection_failure?(message)
 
@@ -99,7 +99,7 @@ defmodule AshGrpc.Client.Errors do
 
   `opts` are passed through to `AshGrpc.Error.from_rpc_error/2` (`:client`, `:service`, `:rpc`).
   """
-  @spec from_rpc_error(GRPC.RPCError.t(), keyword()) :: Exception.t()
+  @spec from_rpc_error(AshGrpc.Types.rpc_error(), keyword()) :: Exception.t()
   def from_rpc_error(%GRPC.RPCError{} = error, opts \\ []) do
     AshGrpc.Error.from_rpc_error(error, opts)
   end

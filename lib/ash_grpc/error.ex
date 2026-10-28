@@ -107,7 +107,7 @@ defmodule AshGrpc.Error do
       names into proto field names in `BadRequest` field violations.
     * `:domain` – `ErrorInfo.domain` (default `config :ash_grpc, :error_domain` or `"ash"`).
   """
-  @spec to_rpc_error(Ash.Error.t() | term(), Keyword.t()) :: GRPC.RPCError.t()
+  @spec to_rpc_error(Ash.Error.t() | term(), Keyword.t()) :: AshGrpc.Types.rpc_error()
   def to_rpc_error(error, opts \\ [])
 
   def to_rpc_error(%GRPC.RPCError{} = error, _opts), do: error
@@ -151,7 +151,7 @@ defmodule AshGrpc.Error do
     * `:resource` – resource for `Ash.Error.Query.NotFound`.
     * `:primary_key` – primary key for `Ash.Error.Query.NotFound`.
   """
-  @spec from_rpc_error(GRPC.RPCError.t(), Keyword.t()) :: Exception.t()
+  @spec from_rpc_error(AshGrpc.Types.rpc_error(), Keyword.t()) :: Exception.t()
   def from_rpc_error(%GRPC.RPCError{} = rpc_error, opts \\ []) do
     details = Details.unpack_all(rpc_error.details)
     code = Info.code(rpc_error.status || 2)

@@ -162,28 +162,28 @@ defmodule AshGrpc.Server do
   ## Request context helpers (for interceptors)
 
   @doc "Stores the Ash actor for the request handled with `stream`."
-  @spec put_actor(GRPC.Server.Stream.t(), term()) :: GRPC.Server.Stream.t()
+  @spec put_actor(AshGrpc.Types.server_stream(), term()) :: AshGrpc.Types.server_stream()
   def put_actor(stream, actor), do: put_local(stream, :actor, actor)
 
   @doc "The actor stored with `put_actor/2` (or `nil`)."
-  @spec actor(GRPC.Server.Stream.t()) :: term()
+  @spec actor(AshGrpc.Types.server_stream()) :: term()
   def actor(stream), do: get_local(stream, :actor)
 
   @doc "Stores the Ash tenant for the request handled with `stream`."
-  @spec put_tenant(GRPC.Server.Stream.t(), term()) :: GRPC.Server.Stream.t()
+  @spec put_tenant(AshGrpc.Types.server_stream(), term()) :: AshGrpc.Types.server_stream()
   def put_tenant(stream, tenant), do: put_local(stream, :tenant, tenant)
 
   @doc "The tenant stored with `put_tenant/2` (or `nil`)."
-  @spec tenant(GRPC.Server.Stream.t()) :: term()
+  @spec tenant(AshGrpc.Types.server_stream()) :: term()
   def tenant(stream), do: get_local(stream, :tenant)
 
   @doc "Merges `context` into the Ash context passed to every Ash call of the request."
-  @spec put_context(GRPC.Server.Stream.t(), map()) :: GRPC.Server.Stream.t()
+  @spec put_context(AshGrpc.Types.server_stream(), map()) :: AshGrpc.Types.server_stream()
   def put_context(stream, context) when is_map(context),
     do: put_local(stream, :context, Map.merge(context(stream), context))
 
   @doc "The Ash context stored with `put_context/2`."
-  @spec context(GRPC.Server.Stream.t()) :: map()
+  @spec context(AshGrpc.Types.server_stream()) :: map()
   def context(stream), do: get_local(stream, :context) || %{}
 
   defp put_local(%{local: local} = stream, key, value) do

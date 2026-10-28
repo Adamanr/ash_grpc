@@ -136,7 +136,7 @@ defmodule AshGrpc.Client do
         do: AshGrpc.Client.stream(__MODULE__, rpc, request_or_enum, opts)
 
       @doc "Checks out a connected `GRPC.Channel` (e.g. to use generated stubs directly)."
-      @spec channel(keyword()) :: {:ok, GRPC.Channel.t()} | {:error, term()}
+      @spec channel(keyword()) :: {:ok, AshGrpc.Types.channel()} | {:error, term()}
       def channel(opts \\ []), do: AshGrpc.Client.channel(__MODULE__, opts)
 
       @doc "Health of this client's connections. See `AshGrpc.Client.health/1`."
@@ -207,7 +207,7 @@ defmodule AshGrpc.Client do
   Options: `:timeout` - how long to wait for a connection being established (defaults to
   the client's `:connect_timeout`).
   """
-  @spec channel(client(), keyword()) :: {:ok, GRPC.Channel.t()} | {:error, term()}
+  @spec channel(client(), keyword()) :: {:ok, AshGrpc.Types.channel()} | {:error, term()}
   def channel(client, opts \\ []), do: Call.channel(client, opts)
 
   @doc """

@@ -81,7 +81,8 @@ defmodule AshGrpc.Client.Pool do
 
   The returned channel is a real (connected) channel, usable with `GRPC.Stub` directly.
   """
-  @spec checkout(Runtime.t(), timeout()) :: {:ok, GRPC.Channel.t()} | {:error, GRPC.RPCError.t()}
+  @spec checkout(Runtime.t(), timeout()) ::
+          {:ok, AshGrpc.Types.channel()} | {:error, AshGrpc.Types.rpc_error()}
   def checkout(%Runtime{} = runtime, timeout) do
     size = tuple_size(runtime.connections)
     index = rem(:atomics.add_get(runtime.counter, 1, 1), size)
@@ -162,7 +163,7 @@ defmodule AshGrpc.Client.Pool do
   Nothing happens when the connection has already been replaced since `channel` was checked
   out, so concurrent failures of calls on the same connection reset it only once.
   """
-  @spec reset(Runtime.t(), GRPC.Channel.t()) :: :ok
+  @spec reset(Runtime.t(), AshGrpc.Types.channel()) :: :ok
   def reset(%Runtime{}, %GRPC.Channel{} = channel) do
     if same_connection?(channel), do: Connection.disconnect(channel)
     :ok

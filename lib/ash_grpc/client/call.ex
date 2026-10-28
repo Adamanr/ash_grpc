@@ -82,7 +82,7 @@ defmodule AshGrpc.Client.Call do
   end
 
   @doc "Checks out a connected channel of the client."
-  @spec channel(atom(), keyword()) :: {:ok, GRPC.Channel.t()} | {:error, term()}
+  @spec channel(atom(), keyword()) :: {:ok, AshGrpc.Types.channel()} | {:error, term()}
   def channel(client, opts) do
     with {:ok, runtime} <- Runtime.fetch(client) do
       if runtime.config.sandbox do

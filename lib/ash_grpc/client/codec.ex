@@ -31,7 +31,8 @@ defmodule AshGrpc.Client.Codec do
   Decodes a `Raw` message, enforcing `max_size` bytes (`nil` for no limit). Already decoded
   values are returned unchanged.
   """
-  @spec finalize(term(), pos_integer() | nil) :: {:ok, term()} | {:error, GRPC.RPCError.t()}
+  @spec finalize(term(), pos_integer() | nil) ::
+          {:ok, term()} | {:error, AshGrpc.Types.rpc_error()}
   def finalize(%Raw{binary: binary}, max) when is_integer(max) and byte_size(binary) > max do
     {:error,
      AshGrpc.Client.Errors.rpc_error(

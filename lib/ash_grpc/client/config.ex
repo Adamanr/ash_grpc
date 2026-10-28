@@ -25,7 +25,7 @@ defmodule AshGrpc.Client.Config do
           otp_app: atom() | nil,
           services: [module()],
           address: String.t() | nil,
-          tls: false | GRPC.Credential.t(),
+          tls: false | AshGrpc.Types.credential(),
           pool_size: pos_integer(),
           connect: :eager | :lazy,
           connect_timeout: pos_integer(),

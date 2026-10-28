@@ -48,7 +48,8 @@ defmodule AshGrpc.Server.Handler do
   Returns the reply (unary responses) or the stream (streaming responses); raises
   `GRPC.RPCError` on failure.
   """
-  @spec handle(module(), {String.t(), String.t()}, term(), GRPC.Server.Stream.t()) :: term()
+  @spec handle(module(), {String.t(), String.t()}, term(), AshGrpc.Types.server_stream()) ::
+          term()
   def handle(endpoint, key, request, stream) do
     ctx = Context.new(endpoint, endpoint.__ash_grpc__({:rpc, key}), stream)
     if ctx.timeout, do: AshGrpc.Client.put_deadline(ctx.timeout)

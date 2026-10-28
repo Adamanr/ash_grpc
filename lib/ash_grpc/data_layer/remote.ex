@@ -32,7 +32,7 @@ defmodule AshGrpc.DataLayer.Remote do
 
   @doc "Calls the unary `rpc` of `client`. Errors are returned unmapped (see `map_error/2`)."
   @spec call(AshGrpc.Client.client(), AshGrpc.Client.rpc(), struct(), context()) ::
-          {:ok, struct()} | {:error, GRPC.RPCError.t() | Exception.t()}
+          {:ok, struct()} | {:error, AshGrpc.Types.rpc_error() | Exception.t()}
   def call(client, rpc, request, context) do
     case AshGrpc.Client.call(client, rpc, request, call_opts(context)) do
       {:ok, response} -> {:ok, response}
