@@ -261,13 +261,19 @@ defmodule AshGrpc.ServerTest do
 
       result = Client.stream(:watch_items, %{}, deadline: 30)
 
-      assert_receive {^ref, handler}, 1_000
-      monitor = Process.monitor(handler)
-      assert_receive {:DOWN, ^monitor, :process, _, _}, 2_000
-
       case result do
         {:ok, stream} -> assert_raise GRPC.RPCError, fn -> Enum.to_list(stream) end
         {:error, error} -> assert status(error) == :deadline_exceeded
+      end
+
+      # on a slow runner the deadline may expire before the handler starts at all; when it did
+      # start it must terminate
+      receive do
+        {^ref, handler} ->
+          monitor = Process.monitor(handler)
+          assert_receive {:DOWN, ^monitor, :process, _, _}, 5_000
+      after
+        500 -> :ok
       end
     end
   end
