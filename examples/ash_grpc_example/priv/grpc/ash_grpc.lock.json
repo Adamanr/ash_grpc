@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "messages": {
+    "library.v1.Book": {
+      "fields": {
+        "id": 1,
+        "title": 2,
+        "author": 3,
+        "genre": 4,
+        "copies": 5,
+        "added_by": 6,
+        "inserted_at": 7
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "library.v1.CountAvailableRequest": {
+      "fields": {},
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "library.v1.CountAvailableResponse": {
+      "fields": {
+        "value": 1
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "library.v1.CreateBookRequest": {
+      "fields": {
+        "title": 1,
+        "author": 2,
+        "genre": 3,
+        "copies": 4
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "library.v1.DeleteBookRequest": {
+      "fields": {
+        "id": 1
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "library.v1.GetBookRequest": {
+      "fields": {
+        "id": 1
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "library.v1.ListBooksRequest": {
+      "fields": {
+        "author": 1,
+        "genre": 2,
+        "page_size": 3,
+        "page_token": 4
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "library.v1.ListBooksResponse": {
+      "fields": {
+        "books": 1,
+        "next_page_token": 2,
+        "total_size": 3
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "library.v1.UpdateBookRequest": {
+      "fields": {
+        "id": 1,
+        "title": 2,
+        "author": 3,
+        "genre": 4,
+        "copies": 5,
+        "update_mask": 6
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "library.v1.WatchBooksRequest": {
+      "fields": {},
+      "reserved_numbers": [],
+      "reserved_names": []
+    }
+  },
+  "enums": {
+    "library.v1.Genre": {
+      "values": {
+        "GENRE_UNSPECIFIED": 0,
+        "GENRE_FICTION": 1,
+        "GENRE_SCIENCE": 2,
+        "GENRE_HISTORY": 3
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    }
+  }
+}
