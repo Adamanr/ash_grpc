@@ -22,7 +22,8 @@ defmodule AshGrpc.Server do
     * `:max_message_size` – max request size in bytes (defaults to the endpoint's
       `max_message_size`, otherwise 4 MiB)
     * `:exception_log_filter` – `{module, function}` deciding which handler exceptions are
-      logged by `grpc_server`
+      logged by `grpc_server` (default `{AshGrpc.Server, :log_exception?}`, see
+      `log_exception?/1`)
     * `:name` – supervisor name (default `Module.concat(endpoint, Supervisor)`)
 
   ## Request context
@@ -65,6 +66,7 @@ defmodule AshGrpc.Server do
     end
 
     config = endpoint.__ash_grpc__(:config)
+    load_schema_modules(endpoint.schema())
 
     health =
       if config.health?, do: [{AshGrpc.Server.Health, endpoint: endpoint}], else: []
@@ -76,6 +78,28 @@ defmodule AshGrpc.Server do
       strategy: :rest_for_one
     )
   end
+
+  # Handlers and the codec turn proto field names into the atoms of the message structs with
+  # `String.to_existing_atom/1` (never `to_atom` on wire data). In interactive mode (dev, test)
+  # a module and the atoms of its struct only exist once it is loaded, so load them up front:
+  # otherwise the first request whose response module was never used fails.
+  defp load_schema_modules(%AshGrpc.Proto.IR.Schema{files: files}) do
+    for file <- files, node <- file.messages ++ file.enums ++ file.services do
+      load_modules(node)
+    end
+
+    :ok
+  end
+
+  defp load_modules(%AshGrpc.Proto.IR.Message{} = message) do
+    Code.ensure_loaded(message.module)
+    Enum.each(message.nested_messages ++ message.nested_enums, &load_modules/1)
+  end
+
+  defp load_modules(%{module: module}) when is_atom(module) and not is_nil(module),
+    do: Code.ensure_loaded(module)
+
+  defp load_modules(_node), do: :ok
 
   defp grpc_supervisor(endpoint, config, opts) do
     adapter_opts =
@@ -92,10 +116,26 @@ defmodule AshGrpc.Server do
         adapter_opts: adapter_opts
       ]
       |> put_new(:max_body_size, opts[:max_message_size] || config.max_message_size)
-      |> put_new(:exception_log_filter, opts[:exception_log_filter])
+      |> put_new(
+        :exception_log_filter,
+        Keyword.get(opts, :exception_log_filter, {__MODULE__, :log_exception?})
+      )
 
     {GRPC.Server.Supervisor, grpc_opts}
   end
+
+  @doc """
+  The default `:exception_log_filter`: whether `grpc_server` logs an exception raised while
+  handling a request.
+
+  Statuses (`GRPC.RPCError`) are not logged: they are the deliberate outcome of a request
+  (`INVALID_ARGUMENT`, `NOT_FOUND`, `PERMISSION_DENIED`, …), and internal errors were already
+  logged with their stacktrace by the handler before being turned into `INTERNAL`. Anything
+  else (e.g. a crash in a custom `handler:`) is logged.
+  """
+  @spec log_exception?(Exception.t()) :: boolean()
+  def log_exception?(%{reason: %GRPC.RPCError{}}), do: false
+  def log_exception?(_exception), do: true
 
   defp cred(opts) do
     cond do
