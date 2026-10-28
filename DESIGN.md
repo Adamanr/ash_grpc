@@ -458,5 +458,7 @@ Rules for every package:
 ## 6. Known issues
 
 * `cowlib 2.21.0` (transitive via `cowboy`/`gun`) has advisory EEF-CVE-2026-43966 (MEDIUM, HTTP
-  response splitting in `cow_http_struct_hd`); no patched release yet — bump when available.
+  response splitting in `cow_http_struct_hd`); no patched release yet (re-checked 2026-10-28:
+  2.21.0 is still the latest) — bump when available. CI (`.github/scripts/hex_audit.sh`)
+  allows exactly this advisory; remove it from the allow-list once a patched cowlib is locked.
 * `grpc` warns about missing `:gun` at compile time; AshGrpc clients default to the Mint adapter.

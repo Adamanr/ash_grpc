@@ -1,0 +1,121 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PROTOC_VERSION: "33.2"
+  BUF_VERSION: "1.62.1"
+
+jobs:
+  test:
+    name: Elixir ${{ matrix.elixir }} / OTP ${{ matrix.otp }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - elixir: "1.18"
+            otp: "27"
+          - elixir: "1.19"
+            otp: "28"
+    env:
+      MIX_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1
+        id: beam
+        with:
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
+
+      - uses: arduino/setup-protoc@v3
+        with:
+          version: ${{ env.PROTOC_VERSION }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: bufbuild/buf-action@v1
+        with:
+          version: ${{ env.BUF_VERSION }}
+          setup_only: true
+
+      - name: Cache deps and _build
+        uses: actions/cache@v4
+        with:
+          path: |
+            deps
+            _build
+          key: mix-${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            mix-${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-
+
+      - run: mix deps.get
+      - run: mix deps.compile
+
+      # format, compile --warnings-as-errors, credo --strict, tests (incl. test/e2e)
+      - run: mix check
+
+      - name: Docs build without warnings
+        env:
+          MIX_ENV: dev
+        run: mix docs --warnings-as-errors
+
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.18"
+          otp-version: "27"
+      - run: mix deps.get
+      # allows only the advisories listed in DESIGN.md §6 (cowlib, no patched release yet)
+      - run: .github/scripts/hex_audit.sh
+
+  example:
+    name: Example app
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: examples/ash_grpc_example
+    env:
+      MIX_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1
+        id: beam
+        with:
+          elixir-version: "1.18"
+          otp-version: "27"
+
+      - uses: arduino/setup-protoc@v3
+        with:
+          version: ${{ env.PROTOC_VERSION }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache deps and _build
+        uses: actions/cache@v4
+        with:
+          path: |
+            examples/ash_grpc_example/deps
+            examples/ash_grpc_example/_build
+          key: example-${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-${{ hashFiles('examples/ash_grpc_example/mix.lock', 'mix.lock') }}
+
+      - run: mix deps.get
+      - run: mix format --check-formatted
+      - run: mix compile --warnings-as-errors
+      - name: The committed contract is up to date
+        run: mix ash_grpc.codegen --check
+      - run: mix test
