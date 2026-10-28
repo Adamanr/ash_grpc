@@ -31,7 +31,7 @@ jobs:
     env:
       MIX_ENV: test
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: erlef/setup-beam@v1
         id: beam
@@ -74,7 +74,7 @@ jobs:
     name: Dependency audit
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: erlef/setup-beam@v1
         with:
           elixir-version: "1.18"
@@ -92,7 +92,7 @@ jobs:
     env:
       MIX_ENV: test
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: erlef/setup-beam@v1
         id: beam
