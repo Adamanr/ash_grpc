@@ -90,6 +90,8 @@ defmodule AshGrpc.Domain do
 
   Every resource of the domain that uses `AshGrpc.Resource` contributes its message and rpcs.
   See the generated DSL documentation for all options.
+
+  `mix ash.codegen` also runs `mix ash_grpc.codegen` through this extension (`codegen/1`).
   """
 
   use Spark.Dsl.Extension,
@@ -98,4 +100,16 @@ defmodule AshGrpc.Domain do
       AshGrpc.Domain.Verifiers.VerifyPackage,
       AshGrpc.Domain.Verifiers.VerifyServices
     ]
+
+  @behaviour Ash.Extension
+
+  @doc """
+  Ash extension codegen hook: `mix ash.codegen [name]` (and `--check`, `--dry-run`) runs
+  `mix ash_grpc.codegen` with the same arguments.
+  """
+  @impl Ash.Extension
+  def codegen(argv) do
+    Mix.Task.reenable("ash_grpc.codegen")
+    Mix.Task.run("ash_grpc.codegen", Enum.filter(argv, &is_binary/1))
+  end
 end
