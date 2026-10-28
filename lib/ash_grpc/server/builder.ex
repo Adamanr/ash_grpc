@@ -32,6 +32,7 @@ defmodule AshGrpc.Server.Builder do
     endpoint = caller.module
 
     {otp_app, domains} = required_options!(opts, caller)
+    ensure_compiled!(domains)
     lock_path = opts[:lock_path] || Lock.default_path(otp_app)
     schema = build_schema!(domains, lock_path, opts, caller)
 
@@ -122,6 +123,19 @@ defmodule AshGrpc.Server.Builder do
       [] -> compile_error!(caller, "AshGrpc.Endpoint requires :domains")
       domains -> {otp_app, domains}
     end
+  end
+
+  # The schema is built while this macro expands, so the domains and their resources must be
+  # compiled first: in a project the endpoint is usually compiled in parallel with them, and a
+  # module that is still being compiled is not loaded yet.
+  defp ensure_compiled!(domains) do
+    for domain <- domains, match?({:module, _}, Code.ensure_compiled(domain)) do
+      if function_exported?(domain, :spark_dsl_config, 0) do
+        domain |> Ash.Domain.Info.resources() |> Enum.each(&Code.ensure_compiled!/1)
+      end
+    end
+
+    :ok
   end
 
   ## Schema and lock
