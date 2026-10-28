@@ -1,7 +1,7 @@
 # AshGrpc
 
 [![CI](https://github.com/Adamanr/ash_grpc/actions/workflows/ci.yml/badge.svg)](https://github.com/Adamanr/ash_grpc/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Adamanr/ash_grpc/blob/main/LICENSE)
 
 gRPC for the [Ash Framework](https://ash-hq.org), in both directions:
 
