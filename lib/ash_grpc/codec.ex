@@ -5,7 +5,7 @@ defmodule AshGrpc.Codec do
   The conversions mirror `AshGrpc.Type.Mapping`: given the Ash type, its
   constraints and the IR field type the value is (or was) mapped to,
   `encode/5` produces the protobuf field value and `decode/5` the value Ash
-  casts. Types implementing `AshGrpc.Type.encode_proto/2` / `decode_proto/2`
+  casts. Types implementing `c:AshGrpc.Type.encode_proto/2` / `c:AshGrpc.Type.decode_proto/2`
   take over their own conversion.
 
   | Ash value | protobuf-elixir value |

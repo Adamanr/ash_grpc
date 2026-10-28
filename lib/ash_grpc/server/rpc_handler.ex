@@ -31,7 +31,7 @@ defmodule AshGrpc.Server.RpcHandler do
   @doc "Handles one rpc call."
   @callback handle_rpc(
               request :: struct() | Enumerable.t(),
-              stream :: GRPC.Server.Stream.t(),
+              stream :: AshGrpc.Types.server_stream(),
               context :: AshGrpc.Server.Context.t()
             ) :: struct() | {:ok, struct()} | {:error, term()} | term()
 end

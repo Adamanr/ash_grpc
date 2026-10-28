@@ -59,14 +59,14 @@ defmodule AshGrpc.Server.Context do
           actor: term(),
           tenant: term(),
           timeout: non_neg_integer() | nil,
-          stream: GRPC.Server.Stream.t(),
+          stream: AshGrpc.Types.server_stream(),
           settings: map(),
           context: map(),
           metadata: map()
         }
 
   @doc false
-  @spec new(module(), map(), GRPC.Server.Stream.t()) :: t()
+  @spec new(module(), map(), AshGrpc.Types.server_stream()) :: t()
   def new(endpoint, info, stream) do
     timeout =
       case GRPC.Server.Stream.remaining_ms(stream) do
@@ -102,7 +102,7 @@ defmodule AshGrpc.Server.Context do
   @doc """
   The request metadata (headers) of a server stream: lowercase keys, `-bin` values decoded.
   """
-  @spec metadata(GRPC.Server.Stream.t()) :: %{String.t() => String.t()}
+  @spec metadata(AshGrpc.Types.server_stream()) :: %{String.t() => String.t()}
   def metadata(%GRPC.Server.Stream{http_request_headers: headers}) when is_map(headers),
     do: GRPC.Transport.HTTP2.decode_headers(headers)
 

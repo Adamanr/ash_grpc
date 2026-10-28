@@ -30,6 +30,9 @@ defmodule AshGrpc.Actor do
   """
 
   @doc "Resolves the actor from the request metadata."
-  @callback get_actor(metadata :: %{String.t() => String.t()}, stream :: GRPC.Server.Stream.t()) ::
+  @callback get_actor(
+              metadata :: %{String.t() => String.t()},
+              stream :: AshGrpc.Types.server_stream()
+            ) ::
               {:ok, term() | nil} | {:error, :unauthenticated | Exception.t() | term()}
 end

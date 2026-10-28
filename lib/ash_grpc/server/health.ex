@@ -146,7 +146,7 @@ defmodule AshGrpc.Server.Health.Server do
   alias AshGrpc.Server.Health
 
   @doc "`Check`: the status of the requested service; `NOT_FOUND` for unknown services."
-  @spec check(struct(), GRPC.Server.Stream.t()) :: struct()
+  @spec check(struct(), AshGrpc.Types.server_stream()) :: struct()
   def check(request, stream) do
     case Health.status(stream.endpoint, request.service) do
       :service_unknown ->
@@ -158,7 +158,7 @@ defmodule AshGrpc.Server.Health.Server do
   end
 
   @doc "`Watch`: sends the current status, then every change, until the client cancels."
-  @spec watch(struct(), GRPC.Server.Stream.t()) :: GRPC.Server.Stream.t()
+  @spec watch(struct(), AshGrpc.Types.server_stream()) :: AshGrpc.Types.server_stream()
   def watch(request, stream) do
     :ok = Health.watch(stream.endpoint)
     response = Health.response(stream.endpoint, request.service)

@@ -9,12 +9,26 @@ defmodule AshGrpc.Client.Pool do
     * name resolution (`dns:///`, `ipv4:`, `unix:` …) with periodic DNS re-resolution,
     * load balancing across resolved addresses (`:lb_policy`, `:round_robin` by default),
     * establishment in the background with exponential backoff, never failing the supervisor,
-    * re-dialing a dropped connection (Mint adapter `retry`, from `:reconnect_attempts`).
+    * re-dialing a dropped connection in the background (Mint adapter `retry`, from
+      `:reconnect_attempts`).
 
   On top of that the pool adds round-robin across the `pool_size` connections (an `:atomics`
   counter, no process hop), lazy dialing (`connect: :lazy`), bounded waiting for a connection
-  that is still being established (`:connect_timeout`, capped by the call deadline) and
-  `health/1`.
+  that is still being established (`:connect_timeout`, capped by the call deadline), recovery
+  of dropped connections (`reset/2`) and `health/1`.
+
+  ## Recovering dropped connections
+
+  The Mint adapter keeps the connection process of a dropped connection alive and re-dials it
+  with its own backoff (1 s, growing by 1.6x up to 2 minutes), and `GRPC.Client.Connection`
+  never replaces a closed sub-connection itself. Until that background re-dial succeeds, every
+  call on the connection fails immediately with "the connection is closed", so a server that
+  restarts would stay unreachable for a long time after it is back, whatever the retry policy.
+
+  When a call fails because the transport is gone, `AshGrpc.Client.Call` therefore calls
+  `reset/2`: the pooled connection is stopped and the next checkout starts it again. A fresh
+  connection is established in the background with a short backoff (100 ms, growing by 1.6x)
+  and `checkout/2` waits for it, so retries of idempotent calls bridge the reconnect window.
   """
 
   alias AshGrpc.Client.{Config, Errors, Runtime}
@@ -67,7 +81,8 @@ defmodule AshGrpc.Client.Pool do
 
   The returned channel is a real (connected) channel, usable with `GRPC.Stub` directly.
   """
-  @spec checkout(Runtime.t(), timeout()) :: {:ok, GRPC.Channel.t()} | {:error, GRPC.RPCError.t()}
+  @spec checkout(Runtime.t(), timeout()) ::
+          {:ok, AshGrpc.Types.channel()} | {:error, AshGrpc.Types.rpc_error()}
   def checkout(%Runtime{} = runtime, timeout) do
     size = tuple_size(runtime.connections)
     index = rem(:atomics.add_get(runtime.counter, 1, 1), size)
@@ -106,10 +121,20 @@ defmodule AshGrpc.Client.Pool do
   end
 
   defp ensure_started(%Runtime{dynamic_supervisor: nil} = runtime, name) do
-    case Connection.get_channel(name) do
-      {:ok, channel} -> {:ok, channel}
+    with {:error, :not_started} <- Connection.get_channel(name),
+         # Stopped by `reset/2`: connections are `:transient` children, so the supervisor does
+         # not restart them after a normal exit.
+         {:error, reason} when reason in [:running, :restarting] <-
+           Supervisor.restart_child(runtime.config.name, {Connection, name}) do
+      Connection.get_channel(name)
+    else
+      {:ok, %GRPC.Channel{} = channel} -> {:ok, channel}
+      {:ok, _pid} -> Connection.get_channel(name)
+      {:ok, _pid, _info} -> Connection.get_channel(name)
       {:error, _} -> {:error, unavailable(runtime)}
     end
+  catch
+    :exit, _ -> {:error, unavailable(runtime)}
   end
 
   defp ensure_started(%Runtime{} = runtime, name) do
@@ -130,6 +155,32 @@ defmodule AshGrpc.Client.Pool do
   catch
     :exit, _ -> {:error, unavailable(runtime)}
   end
+
+  @doc """
+  Drops the pooled connection behind `channel` after a call on it failed because its transport
+  is gone (see "Recovering dropped connections"). The next `checkout/2` re-dials it.
+
+  Nothing happens when the connection has already been replaced since `channel` was checked
+  out, so concurrent failures of calls on the same connection reset it only once.
+  """
+  @spec reset(Runtime.t(), AshGrpc.Types.channel()) :: :ok
+  def reset(%Runtime{}, %GRPC.Channel{} = channel) do
+    if same_connection?(channel), do: Connection.disconnect(channel)
+    :ok
+  catch
+    :exit, _ -> :ok
+  end
+
+  defp same_connection?(%GRPC.Channel{adapter_payload: %{conn_pid: pid}} = channel)
+       when is_pid(pid) do
+    case Connection.pick_channel(channel) do
+      {:ok, %GRPC.Channel{adapter_payload: %{conn_pid: ^pid}}} -> true
+      {:ok, _other} -> not Process.alive?(pid)
+      _ -> false
+    end
+  end
+
+  defp same_connection?(_channel), do: false
 
   defp unavailable(runtime) do
     Errors.rpc_error(
