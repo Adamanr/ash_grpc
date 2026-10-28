@@ -315,6 +315,16 @@ defmodule AshGrpc.Error do
     |> Map.new()
   end
 
+  # shapes emitted by `AshGrpc.Schema` (matched before the generic `{kind, name, type, c}`)
+  defp source_name({:argument, resource, action, name})
+       when is_atom(resource) and is_atom(action) and is_atom(name) and not is_nil(name),
+       do: name
+
+  defp source_name({kind, resource, name})
+       when kind in [:attribute, :calculation, :aggregate, :relationship] and is_atom(resource) and
+              is_atom(name),
+       do: name
+
   defp source_name({_kind, name, _type, _constraints}) when is_atom(name), do: name
   defp source_name({_kind, name}) when is_atom(name), do: name
   defp source_name(name) when is_atom(name) and not is_nil(name), do: name
