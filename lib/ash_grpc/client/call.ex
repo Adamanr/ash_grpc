@@ -22,6 +22,8 @@ defmodule AshGrpc.Client.Call do
     * `:compression` - `:gzip`, a `GRPC.Compressor` module or `nil` (overrides the client).
     * `:retry` - `false` or a keyword list overriding the client retry policy.
     * `:idempotent` - `true`/`false` to override the rpc's idempotency for this call.
+    * `:map_errors` - `false` returns `GRPC.RPCError`s unmapped for this call (overrides the
+      client's `:map_errors`).
     * `:return_headers` - when `true`, unary calls return `{:ok, response, %{headers: ..., trailers: ...}}`.
     * any other key (e.g. `:actor`, `:tenant`) is available to metadata functions in the
       context's `:opts`.
@@ -426,14 +428,16 @@ defmodule AshGrpc.Client.Call do
   defp map_result({:error, %GRPC.RPCError{} = error}, ctx), do: {:error, map_error(error, ctx)}
   defp map_result(result, _ctx), do: result
 
-  defp map_error(%GRPC.RPCError{} = error, %{runtime: %{config: %{map_errors: false}}}), do: error
-
   defp map_error(%GRPC.RPCError{} = error, ctx) do
-    Errors.from_rpc_error(error,
-      client: ctx.client,
-      service: ctx.entry.service,
-      rpc: ctx.entry.name
-    )
+    if Keyword.get(ctx.opts, :map_errors, ctx.runtime.config.map_errors) do
+      Errors.from_rpc_error(error,
+        client: ctx.client,
+        service: ctx.entry.service,
+        rpc: ctx.entry.name
+      )
+    else
+      error
+    end
   end
 
   defp expect_type(entry, types, _fun, other_fun) do
