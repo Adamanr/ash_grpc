@@ -2,7 +2,7 @@ defmodule AshGrpc.MixProject do
   use Mix.Project
 
   @version "0.1.0"
-  @source_url "https://github.com/ash-project/ash_grpc"
+  @source_url "https://github.com/Adamanr/ash_grpc"
 
   def project do
     [

@@ -1,5 +1,8 @@
 # AshGrpc
 
+[![CI](https://github.com/Adamanr/ash_grpc/actions/workflows/ci.yml/badge.svg)](https://github.com/Adamanr/ash_grpc/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 gRPC for the [Ash Framework](https://ash-hq.org), in both directions:
 
 * **Serve**: describe gRPC APIs next to your resources (`grpc do ... end`) and get a running
@@ -144,5 +147,5 @@ end
   [`AshGrpc.Domain`](documentation/dsls/DSL-AshGrpc.Domain.md),
   [`AshGrpc.DataLayer`](documentation/dsls/DSL-AshGrpc.DataLayer.md)
 
-The [example app](https://github.com/ash-project/ash_grpc/tree/main/examples) runs two services: one serving with AshGrpc, one
+The [example app](https://github.com/Adamanr/ash_grpc/tree/main/examples) runs two services: one serving with AshGrpc, one
 consuming it through a remote resource. [DESIGN.md](DESIGN.md) describes the architecture.

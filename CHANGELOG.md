@@ -52,5 +52,5 @@ The first release.
 * `AshGrpc.DataLayer` (`grpc_remote` DSL): resources backed by external gRPC services, with
   filter push-down, page-token pagination, get rpcs, update masks and error mapping.
 
-[Unreleased]: https://github.com/ash-project/ash_grpc/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/ash-project/ash_grpc/releases/tag/v0.1.0
+[Unreleased]: https://github.com/Adamanr/ash_grpc/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/Adamanr/ash_grpc/releases/tag/v0.1.0
