@@ -178,14 +178,11 @@ defmodule AshGrpc.Client.UnitsTest do
       assert Errors.status_code(:deadline_exceeded) == 4
     end
 
-    test "from_rpc_error delegates to AshGrpc.Error.from_rpc_error/2 only when it exists" do
+    test "from_rpc_error maps statuses into Ash errors" do
       error = Errors.rpc_error(:not_found, "missing")
 
-      if function_exported?(AshGrpc.Error, :from_rpc_error, 2) do
-        assert %{__exception__: true} = Errors.from_rpc_error(error, [])
-      else
-        assert Errors.from_rpc_error(error, []) == error
-      end
+      assert %Ash.Error.Invalid{errors: [%Ash.Error.Query.NotFound{}]} =
+               Errors.from_rpc_error(error, [])
     end
   end
 

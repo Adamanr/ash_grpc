@@ -149,7 +149,7 @@ defmodule AshGrpc.Test.User do
     field :id, number: 1
     field :email, number: 2, doc: "Primary email", json_name: "emailAddress"
     field :name, deprecated?: true, options: [{"(my.ext).sensitive", true}]
-    field :payload, representation: :bytes
+    field :payload, representation: {:message, "google.protobuf.Value"}
     field :adult?, proto_name: "is_adult"
     field :inserted_at, number: 20
 

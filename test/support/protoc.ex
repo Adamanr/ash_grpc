@@ -47,9 +47,17 @@ defmodule AshGrpc.Test.Protoc do
     end
   end
 
-  @doc "Runs `buf format -d` in `dir`; returns the diff output (empty when formatted)."
-  def buf_format_diff(dir) do
-    {output, _status} = System.cmd("buf", ["format", "-d", dir], stderr_to_stdout: true)
+  @doc """
+  Runs `buf format -d` in `dir`, limited to the given relative `paths` (the rendered
+  files, not the hand-written fixtures copied next to them); returns the diff output
+  (empty when formatted).
+  """
+  def buf_format_diff(dir, paths) do
+    path_args = Enum.flat_map(paths, &["--path", Path.join(dir, &1)])
+
+    {output, _status} =
+      System.cmd("buf", ["format", "-d", dir | path_args], stderr_to_stdout: true)
+
     output
   end
 

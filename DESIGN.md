@@ -388,6 +388,18 @@ Phase 1 (parallel, independent files): **WP-A, WP-B, WP-C, WP-D, WP-E**.
 Phase 2 (after phase 1 is merged): **WP-F server**, **WP-G codegen**, **WP-H remote**.
 Phase 3: **WP-I docs, example app, end-to-end tests, CI**.
 
+Status: phase 1 is merged into `main`. Integration decisions taken while merging:
+
+* `AshGrpc.Codec` understands the field `source` shapes emitted by `AshGrpc.Schema`
+  (`{kind, resource, name}`, `{:argument, resource, action, name}`); `{:special, _}` fields
+  (page_token, update_mask, …) are skipped by the codec and handled by the server.
+* `:term` can only be represented as `google.protobuf.Value`/`Struct` or `string` (JSON) —
+  never `bytes` (no `:erlang.binary_to_term/1` on wire data).
+* Compiled services carry `%{idempotency_level: level}` as the 4th `rpc` argument (the only
+  intentional difference from protoc-gen-elixir output); `AshGrpc.Client` retries based on it.
+* `AshGrpc.Client.Errors.from_rpc_error/2` calls `AshGrpc.Error.from_rpc_error/2` directly.
+* `test/ash_grpc/pipeline_test.exs` checks DSL → Schema → Compiler → Codec → wire end to end.
+
 Rules for every package:
 
 * touch only the files of your package (see module map); if you *must* change a shared file

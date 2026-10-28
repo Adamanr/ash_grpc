@@ -36,7 +36,7 @@ defmodule AshGrpc.ResourceTest do
       assert %{kind: :calculation, proto_name: "is_adult"} = fields.adult?
       assert %{kind: :aggregate, type: Ash.Type.Integer, allow_nil?: false} = fields.posts_count
       assert %{kind: :relationship, type: Post, cardinality: :many} = fields.posts
-      assert %{config: %{representation: :bytes}} = fields.payload
+      assert %{config: %{representation: {:message, "google.protobuf.Value"}}} = fields.payload
       assert %{config: %{json_name: "emailAddress", doc: "Primary email"}} = fields.email
 
       assert %{config: %{deprecated?: true, options: [{"(my.ext).sensitive", true}]}} =
@@ -246,7 +246,7 @@ defmodule AshGrpc.ResourceTest do
             end
 
             grpc do
-              field :ok_blob, representation: :bytes
+              field :ok_blob, representation: {:message, "google.protobuf.Value"}
             end
           end
         end

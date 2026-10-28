@@ -90,7 +90,18 @@ defmodule AshGrpc.Proto.CompilerProtocTest do
       end)
     end
 
-    assert shape.(ours.__rpc_calls__()) == shape.(theirs.__rpc_calls__())
+    # AshGrpc additionally records idempotency in the rpc options (read by AshGrpc.Client
+    # to decide on retries); everything else must match protoc-gen-elixir.
+    without_idempotency = fn calls ->
+      Enum.map(calls, fn {name, req, res, opts} ->
+        {name, req, res, Map.delete(opts, :idempotency_level)}
+      end)
+    end
+
+    assert without_idempotency.(shape.(ours.__rpc_calls__())) == shape.(theirs.__rpc_calls__())
+
+    assert {:GetUser, _, _, %{idempotency_level: :no_side_effects}} =
+             List.keyfind(ours.__rpc_calls__(), :GetUser, 0)
   end
 
   test "wire format is compatible in both directions" do

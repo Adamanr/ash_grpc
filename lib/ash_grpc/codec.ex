@@ -648,6 +648,27 @@ defmodule AshGrpc.Codec do
 
   defp field_spec(%IR.Field{source: {:skip, _}}, _message), do: :skip
 
+  # Protocol fields of `AshGrpc.Schema` (page_token, update_mask, ...) are handled by the server.
+  defp field_spec(%IR.Field{source: {:special, _}}, _message), do: :skip
+
+  # Shapes emitted by `AshGrpc.Schema`: `{:argument, resource, action, name}` and
+  # `{kind, resource, name}`. They must be matched before the generic 4-tuple below.
+  defp field_spec(%IR.Field{source: {:argument, resource, action, name}}, _message)
+       when is_atom(resource) and is_atom(action) and is_atom(name) and not is_nil(name) do
+    case action_argument(resource, action, name) do
+      {type, constraints} -> {:ok, {name, type, constraints}}
+      nil -> {:ok, {name, nil, []}}
+    end
+  end
+
+  defp field_spec(%IR.Field{source: {kind, resource, name}}, _message)
+       when kind in @lookup_kinds and is_atom(resource) and is_atom(name) and not is_nil(name) do
+    case resource_field(kind, resource, nil, name) do
+      {type, constraints} -> {:ok, {name, type, constraints}}
+      nil -> {:ok, {name, nil, []}}
+    end
+  end
+
   defp field_spec(%IR.Field{source: {_kind, name, type, constraints}}, _message)
        when is_atom(name),
        do: {:ok, {name, type, constraints || []}}

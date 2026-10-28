@@ -447,7 +447,17 @@ defmodule AshGrpc.Proto.Compiler do
         output = resolve_module(ctx.index, rpc.output, ctx.opts)
         input = if rpc.client_streaming?, do: quote(do: stream(unquote(input))), else: input
         output = if rpc.server_streaming?, do: quote(do: stream(unquote(output))), else: output
-        quote do: rpc(unquote(atom!(rpc.name, "rpc")), unquote(input), unquote(output))
+        name = atom!(rpc.name, "rpc")
+
+        # AshGrpc.Client reads idempotency from the rpc options to decide on retries.
+        case rpc.idempotency_level do
+          level when level in [:no_side_effects, :idempotent] ->
+            options = Macro.escape(%{idempotency_level: level})
+            quote do: rpc(unquote(name), unquote(input), unquote(output), unquote(options))
+
+          _ ->
+            quote do: rpc(unquote(name), unquote(input), unquote(output))
+        end
       end)
 
     use_opts = [name: service.full_name, protoc_gen_elixir_version: ctx.version]

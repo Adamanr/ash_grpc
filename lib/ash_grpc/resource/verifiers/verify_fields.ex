@@ -205,6 +205,7 @@ defmodule AshGrpc.Resource.Verifiers.VerifyFields do
       field ->
         opts = [
           allow_nil?: field.allow_nil?,
+          name_hint: Macro.camelize(to_string(field.name)),
           representation: field.config && field.config.representation,
           resolve_resource: &placeholder/1
         ]

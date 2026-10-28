@@ -5,12 +5,8 @@ defmodule AshGrpc.Client.Errors do
   * `normalize/1` turns transport failures, exits and raw terms into `GRPC.RPCError`s with a
     meaningful status (a closed connection becomes `UNAVAILABLE`, not `UNKNOWN`), so that retry
     decisions and telemetry can rely on the status code.
-  * `from_rpc_error/2` maps a `GRPC.RPCError` into the exception returned to the caller. It
-    delegates to `AshGrpc.Error.from_rpc_error/2` (built in WP-D) when that function exists and
-    returns the `GRPC.RPCError` unchanged otherwise.
-
-  The `Code.ensure_loaded?/1` / `function_exported?/3` guard only exists because WP-D and WP-E
-  are developed in parallel; it can be replaced by a direct call once both are merged.
+  * `from_rpc_error/2` maps a `GRPC.RPCError` into the Ash error returned to the caller via
+    `AshGrpc.Error.from_rpc_error/2`.
   """
 
   @status_names %{
@@ -95,15 +91,6 @@ defmodule AshGrpc.Client.Errors do
   """
   @spec from_rpc_error(GRPC.RPCError.t(), keyword()) :: Exception.t()
   def from_rpc_error(%GRPC.RPCError{} = error, opts \\ []) do
-    if ash_error_mapping?() do
-      # credo:disable-for-next-line Credo.Check.Refactor.Apply
-      apply(AshGrpc.Error, :from_rpc_error, [error, opts])
-    else
-      error
-    end
-  end
-
-  defp ash_error_mapping? do
-    Code.ensure_loaded?(AshGrpc.Error) and function_exported?(AshGrpc.Error, :from_rpc_error, 2)
+    AshGrpc.Error.from_rpc_error(error, opts)
   end
 end

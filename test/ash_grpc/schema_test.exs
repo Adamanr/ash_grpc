@@ -61,7 +61,10 @@ defmodule AshGrpc.SchemaTest do
              ]
 
       # Product references Address (embedded, placed in the accounts file) and User.
-      assert catalog.imports == ["ashgrpc/test/accounts/v1/accounts.proto"]
+      assert catalog.imports == [
+               "ashgrpc/test/accounts/v1/accounts.proto",
+               "google/type/date.proto"
+             ]
     end
 
     test "every message and service has a module and a source", %{schema: schema} do
@@ -118,7 +121,7 @@ defmodule AshGrpc.SchemaTest do
       assert %IR.Field{type: :bool, label: nil} = field(user, "active")
       assert %IR.Field{type: :string, label: :repeated} = field(user, "tags")
       assert %IR.Field{type: {:message, "google.protobuf.Struct"}} = field(user, "settings")
-      assert %IR.Field{type: :bytes} = field(user, "payload")
+      assert %IR.Field{type: {:message, "google.protobuf.Value"}} = field(user, "payload")
 
       assert %IR.Field{number: 20, type: {:message, "google.protobuf.Timestamp"}, label: nil} =
                field(user, "inserted_at")
@@ -293,7 +296,7 @@ defmodule AshGrpc.SchemaTest do
       assert %IR.Field{label: nil} = field(request, "email")
       assert %IR.Field{label: :optional} = field(request, "active")
       # the record field's representation is reused
-      assert %IR.Field{type: :bytes} = field(request, "payload")
+      assert %IR.Field{type: {:message, "google.protobuf.Value"}} = field(request, "payload")
 
       # renamed request with an argument
       assert %IR.Rpc{input: "#{@accounts}.SignUpRequest", doc: "Sign up"} =

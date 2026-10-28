@@ -214,6 +214,7 @@ defmodule AshGrpc.Resource.Verifiers.VerifyRpcs do
     for {what, type, constraints, representation} <- arguments ++ accepted ++ returns,
         {:error, reason} <- [
           Types.map(type, constraints,
+            name_hint: Macro.camelize(to_string(rpc.name)),
             representation: representation,
             resolve_resource: &VerifyFields.placeholder/1
           )
