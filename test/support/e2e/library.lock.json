@@ -1,0 +1,148 @@
+{
+  "version": 1,
+  "messages": {
+    "ashgrpc.e2e.library.v1.Book": {
+      "fields": {
+        "id": 1,
+        "title": 2,
+        "author": 3,
+        "pages": 4,
+        "status": 5,
+        "tags": 6,
+        "inserted_at": 7,
+        "headline": 8
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.e2e.library.v1.CreateBookRequest": {
+      "fields": {
+        "title": 1,
+        "author": 2,
+        "pages": 3,
+        "status": 4,
+        "tags": 5
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.e2e.library.v1.CreateNoteRequest": {
+      "fields": {
+        "body": 1
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.e2e.library.v1.DeleteBookRequest": {
+      "fields": {
+        "id": 1
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.e2e.library.v1.DeleteNoteRequest": {
+      "fields": {
+        "id": 1
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.e2e.library.v1.GetBookRequest": {
+      "fields": {
+        "id": 1
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.e2e.library.v1.GetNoteRequest": {
+      "fields": {
+        "id": 1
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.e2e.library.v1.ListBooksRequest": {
+      "fields": {
+        "author": 1,
+        "status": 2,
+        "page_size": 3,
+        "page_token": 4
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.e2e.library.v1.ListBooksResponse": {
+      "fields": {
+        "books": 1,
+        "next_page_token": 2,
+        "total_size": 3
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.e2e.library.v1.ListNotesRequest": {
+      "fields": {
+        "page_size": 1,
+        "page_token": 2
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.e2e.library.v1.ListNotesResponse": {
+      "fields": {
+        "notes": 1,
+        "next_page_token": 2,
+        "total_size": 3
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.e2e.library.v1.Note": {
+      "fields": {
+        "id": 1,
+        "body": 2,
+        "owner_id": 3
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.e2e.library.v1.UpdateBookRequest": {
+      "fields": {
+        "id": 1,
+        "title": 2,
+        "author": 3,
+        "pages": 4,
+        "status": 5,
+        "tags": 6,
+        "update_mask": 7
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.e2e.library.v1.UpdateNoteRequest": {
+      "fields": {
+        "id": 1,
+        "body": 2,
+        "update_mask": 3
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.e2e.library.v1.WatchBooksRequest": {
+      "fields": {},
+      "reserved_numbers": [],
+      "reserved_names": []
+    }
+  },
+  "enums": {
+    "ashgrpc.e2e.library.v1.BookStatus": {
+      "values": {
+        "BOOK_STATUS_UNSPECIFIED": 0,
+        "BOOK_STATUS_DRAFT": 1,
+        "BOOK_STATUS_PUBLISHED": 2
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    }
+  }
+}
