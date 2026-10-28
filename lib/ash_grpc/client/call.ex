@@ -41,7 +41,7 @@ defmodule AshGrpc.Client.Call do
   requests and receiving the response), not the consumption of a response stream.
   """
 
-  alias AshGrpc.Client.{Codec, Errors, Request, Retry, RpcTable, Runtime, Sandbox}
+  alias AshGrpc.Client.{Codec, Errors, Pool, Request, Retry, RpcTable, Runtime, Sandbox}
 
   @deadline_key {AshGrpc.Client, :deadline}
   @event [:ash_grpc, :client, :rpc]
@@ -88,7 +88,7 @@ defmodule AshGrpc.Client.Call do
       if runtime.config.sandbox do
         {:error, Errors.rpc_error(:unavailable, "client #{inspect(client)} runs in sandbox mode")}
       else
-        AshGrpc.Client.Pool.checkout(
+        Pool.checkout(
           runtime,
           Keyword.get(opts, :timeout, runtime.config.connect_timeout)
         )
@@ -119,12 +119,22 @@ defmodule AshGrpc.Client.Call do
   end
 
   defp network_unary(ctx, request, remaining) do
-    with {:ok, channel} <- AshGrpc.Client.Pool.checkout(ctx.runtime, remaining) do
+    with {:ok, channel} <- Pool.checkout(ctx.runtime, remaining) do
       ctx
       |> stub_call(channel, request, remaining)
       |> normalize_unary(ctx)
+      |> reset_on_transport_failure(ctx, channel)
     end
   end
+
+  # A call that failed because the connection is gone resets the pooled connection, so that the
+  # next attempt re-dials it instead of failing on the same closed connection.
+  defp reset_on_transport_failure({:error, error} = result, ctx, channel) do
+    if Errors.transport_failure?(error), do: Pool.reset(ctx.runtime, channel)
+    result
+  end
+
+  defp reset_on_transport_failure(result, _ctx, _channel), do: result
 
   defp normalize_unary({:ok, response}, ctx), do: Codec.finalize(response, max_receive(ctx))
 
@@ -178,8 +188,10 @@ defmodule AshGrpc.Client.Call do
   end
 
   defp network_stream(ctx, request, remaining) do
-    with {:ok, channel} <- AshGrpc.Client.Pool.checkout(ctx.runtime, remaining) do
-      run_stream(ctx, channel, request, remaining)
+    with {:ok, channel} <- Pool.checkout(ctx.runtime, remaining) do
+      ctx
+      |> run_stream(channel, request, remaining)
+      |> reset_on_transport_failure(ctx, channel)
     end
   end
 

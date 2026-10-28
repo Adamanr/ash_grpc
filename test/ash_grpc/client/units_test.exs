@@ -173,6 +173,19 @@ defmodule AshGrpc.Client.UnitsTest do
       assert %GRPC.RPCError{status: 13} = Errors.normalize(%RuntimeError{message: "x"})
     end
 
+    test "tells transport failures from statuses sent by the server" do
+      closed =
+        Errors.normalize(%GRPC.RPCError{
+          status: 2,
+          message: "error occurred while receiving data: {:error, \"the connection is closed\"}"
+        })
+
+      assert Errors.transport_failure?(closed)
+      assert Errors.transport_failure?(Errors.normalize({:exit, :noproc}))
+      refute Errors.transport_failure?(Errors.rpc_error(:unavailable, "failing attempt 1"))
+      refute Errors.transport_failure?(Errors.rpc_error(:internal, "the connection is closed"))
+    end
+
     test "status names" do
       assert Errors.status_name(14) == :unavailable
       assert Errors.status_code(:deadline_exceeded) == 4

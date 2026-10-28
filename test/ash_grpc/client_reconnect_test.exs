@@ -9,16 +9,18 @@ defmodule AshGrpc.ClientReconnectTest do
     port = Server.start(EndpointB)
     on_exit(fn -> Server.stop(EndpointB) end)
 
-    start_supervised!(
-      {AshGrpc.Client,
-       name: :reconnect_client,
-       services: [EchoService.Service],
-       address: "127.0.0.1:#{port}",
-       map_errors: false,
-       connect_timeout: 200,
-       retry: [max_attempts: 20, backoff: {:exponential, 50, 200}],
-       idempotent: [:echo]}
-    )
+    start_supervised!({
+      AshGrpc.Client,
+      # The retry budget (< 1 s) is deliberately shorter than the Mint adapter's own re-dial
+      # backoff (>= 1 s): bridging the restart must not depend on the adapter re-dialing.
+      name: :reconnect_client,
+      services: [EchoService.Service],
+      address: "127.0.0.1:#{port}",
+      map_errors: false,
+      connect_timeout: 200,
+      retry: [max_attempts: 10, backoff: {:exponential, 20, 100}],
+      idempotent: [:echo]
+    })
 
     assert {:ok, %EchoResponse{server: "b"}} =
              AshGrpc.Client.call(:reconnect_client, :echo, %{key: "r1"})
@@ -30,7 +32,8 @@ defmodule AshGrpc.ClientReconnectTest do
 
     {:ok, _pid, ^port} = Server.start_endpoint(EndpointB, port)
 
-    # Retries (with backoff) bridge the reconnect window.
+    # The failed r2 call reset the pooled connection; retries (with backoff) bridge the window
+    # until the fresh connection is established.
     assert {:ok, %EchoResponse{server: "b"}} =
              AshGrpc.Client.call(:reconnect_client, :echo, %{key: "r3"}, deadline: 10_000)
 

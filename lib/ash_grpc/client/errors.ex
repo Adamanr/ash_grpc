@@ -72,6 +72,16 @@ defmodule AshGrpc.Client.Errors do
 
   def normalize(other), do: rpc_error(:unknown, inspect(other))
 
+  @doc """
+  Whether a (normalized) error means that the connection itself failed, as opposed to a status
+  sent by the server.
+  """
+  @spec transport_failure?(GRPC.RPCError.t()) :: boolean()
+  def transport_failure?(%GRPC.RPCError{status: 14, message: message}) when is_binary(message),
+    do: connection_failure?(message)
+
+  def transport_failure?(_error), do: false
+
   # The Mint adapter reports a dropped / not (yet) re-established connection as an UNKNOWN error
   # whose message embeds one of these strings. They are transport failures (UNAVAILABLE).
   defp connection_failure?(message) do
