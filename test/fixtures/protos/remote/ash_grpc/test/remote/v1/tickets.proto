@@ -1,0 +1,85 @@
+// Fake remote service used by the AshGrpc.DataLayer / AshGrpc.Rpc tests.
+syntax = "proto3";
+
+package ash_grpc.test.remote.v1;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+
+enum TicketStatus {
+  TICKET_STATUS_UNSPECIFIED = 0;
+  TICKET_STATUS_OPEN = 1;
+  TICKET_STATUS_CLOSED = 2;
+}
+
+message Ticket {
+  string id = 1;
+  string title = 2;
+  string owner_id = 3;
+  TicketStatus status = 4;
+  int64 priority = 5;
+  google.protobuf.Timestamp created_at = 6;
+  optional string description = 7;
+  repeated string labels = 8;
+}
+
+message ListTicketsRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+  string owner_id = 3;
+  TicketStatus status = 4;
+}
+
+message ListTicketsResponse {
+  repeated Ticket tickets = 1;
+  string next_page_token = 2;
+}
+
+message GetTicketRequest {
+  string id = 1;
+}
+
+message CreateTicketRequest {
+  Ticket ticket = 1;
+}
+
+message UpdateTicketRequest {
+  Ticket ticket = 1;
+  google.protobuf.FieldMask update_mask = 2;
+}
+
+message DeleteTicketRequest {
+  string id = 1;
+}
+
+message EscalateRequest {
+  string ticket_id = 1;
+  int64 level = 2;
+}
+
+message EscalateResponse {
+  Ticket ticket = 1;
+  string note = 2;
+}
+
+message WhoAmIRequest {}
+
+message WhoAmIResponse {
+  string actor = 1;
+  string tenant = 2;
+}
+
+service TicketService {
+  rpc ListTickets(ListTicketsRequest) returns (ListTicketsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  rpc GetTicket(GetTicketRequest) returns (Ticket) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  rpc CreateTicket(CreateTicketRequest) returns (Ticket);
+  rpc UpdateTicket(UpdateTicketRequest) returns (Ticket);
+  rpc DeleteTicket(DeleteTicketRequest) returns (google.protobuf.Empty);
+  rpc Escalate(EscalateRequest) returns (EscalateResponse);
+  rpc WhoAmI(WhoAmIRequest) returns (WhoAmIResponse);
+}
