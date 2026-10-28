@@ -1,0 +1,27 @@
+name: Bug report
+description: Something does not work as documented
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Include the expected behaviour and the actual one.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: A resource/domain definition and the call or request that fails.
+      render: elixir
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: ash_grpc, Ash, Elixir and OTP versions.
+      placeholder: "ash_grpc 0.1.0, ash 3.37, Elixir 1.18, OTP 27"
+    validations:
+      required: true

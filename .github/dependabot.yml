@@ -1,0 +1,21 @@
+version: 2
+updates:
+  - package-ecosystem: mix
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+  - package-ecosystem: mix
+    directory: "/examples/ash_grpc_example"
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "deps(example)"
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "ci"
