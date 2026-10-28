@@ -92,7 +92,7 @@ defmodule AshGrpc.Proto.RenderTest do
              //
              // Second paragraph.
              message User {
-               option (acme.options.v1.resource) = {
+               option (acme.toolkit.v1.resource) = {
                  plural: "users"
                  type: "shop/User"
                };
@@ -117,7 +117,7 @@ defmodule AshGrpc.Proto.RenderTest do
                double score = 11 [deprecated = true];
                int64 legacy_id = 12 [
                  json_name = "legacyID",
-                 (acme.options.v1.sensitive) = true
+                 (acme.toolkit.v1.sensitive) = true
                ];
              """
 

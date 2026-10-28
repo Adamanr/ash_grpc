@@ -206,7 +206,7 @@ defmodule AshGrpc.Proto.CompilerTest do
       assert shop.options.optimize_for == :SPEED
 
       assert shop.dependency == [
-               "acme/options/v1/options.proto",
+               "acme/toolkit/v1/options.proto",
                "google/protobuf/empty.proto",
                "google/protobuf/timestamp.proto"
              ]

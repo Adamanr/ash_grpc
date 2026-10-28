@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+message top_level_thing {
+  message inner_thing {
+    int32 x = 1;
+  }
+
+  inner_thing inner = 1;
+}
+
+service PingService {
+  rpc Ping(top_level_thing) returns (top_level_thing);
+}

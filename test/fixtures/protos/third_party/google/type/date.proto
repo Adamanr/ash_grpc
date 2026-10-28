@@ -1,0 +1,11 @@
+// Minimal stand-in for googleapis' google/type/date.proto (same package,
+// message name and field numbers) so tests do not need a googleapis checkout.
+syntax = "proto3";
+
+package google.type;
+
+message Date {
+  int32 year = 1;
+  int32 month = 2;
+  int32 day = 3;
+}

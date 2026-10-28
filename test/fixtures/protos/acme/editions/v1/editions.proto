@@ -1,0 +1,26 @@
+edition = "2023";
+
+package acme.editions.v1;
+
+option features.field_presence = IMPLICIT;
+
+message Settings {
+  string name = 1;
+  int32 explicit_count = 2 [features.field_presence = EXPLICIT];
+  int32 implicit_count = 3;
+  string required_key = 4 [features.field_presence = LEGACY_REQUIRED];
+  Settings parent = 5;
+  repeated int32 values = 6;
+  Mode mode = 7 [features.field_presence = EXPLICIT];
+
+  message Inner {
+    int32 inherited = 1;
+  }
+}
+
+enum Mode {
+  option features.enum_type = CLOSED;
+
+  MODE_UNSPECIFIED = 0;
+  MODE_ON = 1;
+}

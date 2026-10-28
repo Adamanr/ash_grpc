@@ -4,7 +4,7 @@ defmodule AshGrpc.Test.ProtoFixtures do
 
   `shop_file/1` exercises most of the IR: nested types, oneofs, maps, proto3
   `optional`, enums with aliases, reserved ranges, options (incl. custom ones
-  defined in `test/fixtures/protos/acme/options/v1/options.proto`), docs and
+  defined in `test/fixtures/protos/acme/toolkit/v1/options.proto`), docs and
   every streaming kind.
   """
 
@@ -47,7 +47,7 @@ defmodule AshGrpc.Test.ProtoFixtures do
       doc: "A shop user.\n\nSecond paragraph.",
       options: [
         %IR.Option{
-          name: "(acme.options.v1.resource)",
+          name: "(acme.toolkit.v1.resource)",
           value: %{type: "shop/User", plural: "users"}
         }
       ],
@@ -77,7 +77,7 @@ defmodule AshGrpc.Test.ProtoFixtures do
           number: 12,
           type: :int64,
           json_name: "legacyID",
-          options: [%IR.Option{name: "(acme.options.v1.sensitive)", value: true}]
+          options: [%IR.Option{name: "(acme.toolkit.v1.sensitive)", value: true}]
         },
         %IR.Field{name: "scores", number: 14, type: :sint32, label: :repeated},
         %IR.Field{
@@ -174,7 +174,7 @@ defmodule AshGrpc.Test.ProtoFixtures do
       imports: [
         "google/protobuf/timestamp.proto",
         "google/protobuf/empty.proto",
-        "acme/options/v1/options.proto"
+        "acme/toolkit/v1/options.proto"
       ],
       options: [
         %IR.Option{name: "go_package", value: "github.com/acme/shop/gen/v1;shopv1"},

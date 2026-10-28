@@ -1,0 +1,9 @@
+syntax = "proto2";
+
+package unsupported;
+
+message WithGroup {
+  optional group Legacy = 1 {
+    optional int32 value = 1;
+  }
+}

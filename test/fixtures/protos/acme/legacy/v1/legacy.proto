@@ -1,0 +1,35 @@
+syntax = "proto2";
+
+package acme.legacy.v1;
+
+option java_outer_classname = "LegacyProto";
+
+enum Color {
+  RED = 1;
+  GREEN = 2;
+  BLUE = 3;
+}
+
+// A proto2 record with defaults.
+message Record {
+  extensions 100 to 199;
+  reserved 5, 7 to 9;
+
+  required string id = 1;
+  optional int32 count = 2 [default = -5];
+  optional string name = 3 [default = "unnamed \"x\""];
+  optional bool active = 4 [default = true];
+  optional double ratio = 6 [default = 2.5];
+  optional float inf_value = 10 [default = inf];
+  optional double neg_inf_value = 11 [default = -inf];
+  optional double nan_value = 12 [default = nan];
+  optional bytes raw = 13 [default = "a\001\377"];
+  optional Color color = 14 [default = GREEN];
+  optional uint64 big = 15 [default = 18446744073709551615];
+  optional int64 plain = 16;
+  repeated string tags = 17;
+}
+
+extend Record {
+  optional string extra = 100;
+}

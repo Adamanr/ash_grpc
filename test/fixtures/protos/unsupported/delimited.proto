@@ -1,0 +1,11 @@
+edition = "2023";
+
+package unsupported.delimited;
+
+message Child {
+  int32 x = 1;
+}
+
+message Parent {
+  Child child = 1 [features.message_encoding = DELIMITED];
+}
