@@ -1,0 +1,319 @@
+{
+  "version": 1,
+  "messages": {
+    "ashgrpc.test.shop.v1.ArchiveItemRequest": {
+      "fields": {
+        "id": 1,
+        "reason": 2
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.BoomRequest": {
+      "fields": {},
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.BoomResponse": {
+      "fields": {
+        "value": 1
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.ChatRequest": {
+      "fields": {
+        "message": 1
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.ChatResponse": {
+      "fields": {
+        "value": 1
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.CreateDocRequest": {
+      "fields": {
+        "title": 1
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.CreateItemRequest": {
+      "fields": {
+        "name": 1,
+        "price": 2,
+        "status": 3,
+        "tags": 4,
+        "category": 5
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.CreateItemWrappedRequest": {
+      "fields": {
+        "item": 1
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.CreateNoteRequest": {
+      "fields": {
+        "body": 1
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.DeleteItemRequest": {
+      "fields": {
+        "id": 1
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.Doc": {
+      "fields": {
+        "id": 1,
+        "title": 2,
+        "org": 3
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.EchoRequest": {
+      "fields": {
+        "message": 1
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.EchoResponse": {
+      "fields": {
+        "value": 1
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.GetItemByNameRequest": {
+      "fields": {
+        "name": 1
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.GetItemRequest": {
+      "fields": {
+        "id": 1,
+        "read_mask": 2
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.ImportItemsRequest": {
+      "fields": {
+        "name": 1,
+        "price": 2,
+        "status": 3,
+        "tags": 4,
+        "category": 5
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.ImportItemsResponse": {
+      "fields": {
+        "count": 1,
+        "errors": 2
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.Item": {
+      "fields": {
+        "id": 1,
+        "name": 2,
+        "price": 3,
+        "status": 4,
+        "tags": 5,
+        "category": 6,
+        "inserted_at": 7,
+        "label": 8
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.ListDocsRequest": {
+      "fields": {
+        "page_size": 1,
+        "page_token": 2
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.ListDocsResponse": {
+      "fields": {
+        "docs": 1,
+        "next_page_token": 2,
+        "total_size": 3
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.ListItemsOffsetRequest": {
+      "fields": {
+        "page_size": 1,
+        "page_token": 2
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.ListItemsOffsetResponse": {
+      "fields": {
+        "items": 1,
+        "next_page_token": 2,
+        "total_size": 3
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.ListItemsPlainRequest": {
+      "fields": {
+        "page_size": 1,
+        "page_token": 2
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.ListItemsPlainResponse": {
+      "fields": {
+        "items": 1,
+        "next_page_token": 2,
+        "total_size": 3
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.ListItemsRequest": {
+      "fields": {
+        "category": 1,
+        "page_size": 2,
+        "page_token": 3,
+        "filter": 4,
+        "order_by": 5,
+        "read_mask": 6
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.ListItemsResponse": {
+      "fields": {
+        "items": 1,
+        "next_page_token": 2,
+        "total_size": 3
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.ListNotesRequest": {
+      "fields": {
+        "page_size": 1,
+        "page_token": 2
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.ListNotesResponse": {
+      "fields": {
+        "notes": 1,
+        "next_page_token": 2,
+        "total_size": 3
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.NamesRequest": {
+      "fields": {},
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.NamesResponse": {
+      "fields": {
+        "value": 1
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.NoopRequest": {
+      "fields": {},
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.Note": {
+      "fields": {
+        "id": 1,
+        "body": 2,
+        "owner_id": 3
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.SlowRequest": {
+      "fields": {
+        "ms": 1
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.SlowResponse": {
+      "fields": {
+        "value": 1
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.UpdateItemRequest": {
+      "fields": {
+        "id": 1,
+        "name": 2,
+        "price": 3,
+        "status": 4,
+        "tags": 5,
+        "category": 6,
+        "update_mask": 7
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.WatchItemsRequest": {
+      "fields": {},
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.WhoamiRequest": {
+      "fields": {},
+      "reserved_numbers": [],
+      "reserved_names": []
+    },
+    "ashgrpc.test.shop.v1.WhoamiResponse": {
+      "fields": {
+        "value": 1
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    }
+  },
+  "enums": {
+    "ashgrpc.test.shop.v1.ItemStatus": {
+      "values": {
+        "ITEM_STATUS_UNSPECIFIED": 0,
+        "ITEM_STATUS_DRAFT": 1,
+        "ITEM_STATUS_ACTIVE": 2
+      },
+      "reserved_numbers": [],
+      "reserved_names": []
+    }
+  }
+}
